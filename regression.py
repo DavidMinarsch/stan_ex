@@ -1,8 +1,3 @@
-"""
-import os
-os.chdir('/Users/davidminarsch/Desktop/PythonMLM/Further_Examples')
-exec(open("regression.py").read())
-"""
 # Module import:
 import pystan
 import numpy as np
@@ -23,7 +18,7 @@ plt.plot(x, y, 'o')
 plt.xlabel('x')
 plt.ylabel('y')
 plt.title('Data')
-plt.savefig('Data.png')
+# plt.savefig('Data.png')
 plt.show()
 sns.regplot(x=x, y=y)
 """In the simplest invocation, both functions draw a scatterplot of two variables, x and y,
@@ -32,7 +27,7 @@ interval for that regression"""
 plt.xlabel('x')
 plt.ylabel('y')
 plt.title('Linear Regression')
-plt.savefig('Reg_Data.png')
+# plt.savefig('Reg_Data.png')
 plt.show()
 
 
@@ -67,12 +62,13 @@ regress_data_dict = {'X': x, 'y': y, 'N': N, 'K': K}
 # Fit the model:
 n_iter = 1000
 n_chains = 4
-fit = pystan.stan(model_code=regress_code, data=regress_data_dict, iter=n_iter, chains=n_chains)
+model = pystan.StanModel(model_code=regress_code)
+fit = model.sampling(data=regress_data_dict, iter=n_iter, chains=n_chains)
 """There are n_chains chains, and each chain as n_iter runs. First half of the n_iter runs 
 for each chain are warmup, the second half produce the posterior draws."""
 
 # make a dataframe of parameter estimates for all chains
-params = pd.DataFrame(fit.extract(['a','b'], permuted=True))
+params = pd.DataFrame({'a': fit.extract()['a'], 'b': np.array([x[0] for x in fit.extract()['b']])})
 medParam = params.median()
 
 # Model summary:
@@ -80,7 +76,7 @@ print(fit)
  
 # Show a traceplot of ALL parameters:
 fit.traceplot()
-plt.savefig('Traceplot_all.png')
+# plt.savefig('Traceplot_all.png')
 plt.show()
 """This plot show the traces of the parameters on the left for all chains and you want all chains to
 converge to similar values (ie no divergence in the values). On the right side of the plot are the
@@ -88,12 +84,12 @@ posterior distributions of the parameters."""
 
 # Show a traceplot for single parameter:
 fit.plot(['a'])
-plt.savefig('Traceplot_a.png')
+# plt.savefig('Traceplot_a.png')
 plt.show()
 
 # Show a pairplot of the parameter:
 sns.pairplot(params)
-plt.savefig('Pairplot.png')
+# plt.savefig('Pairplot.png')
 plt.show()
 """A helpful summary plot is the pairwise correlation between the parameters, if each parameters
 is adding additional independent information, the points should form a shapeless cloud. If you have 
@@ -102,7 +98,7 @@ extra information."""
 
 # Show a boxplot of the parameter:
 sns.boxplot(params)
-plt.savefig('Boxplot.png')
+# plt.savefig('Boxplot.png')
 plt.show()
 """Credible intervals are another summary for the different parameters in the models, the red bands 
 in this graph show that the parameters have a probability of 0.8 to be within the bands. Which is an
@@ -140,7 +136,7 @@ plt.plot(x, y, 'ko')
 plt.plot(predX, yhat['fitted'], 'k')
 plt.xlabel('x')
 plt.ylabel('y')
-plt.savefig('Plot1.png')
+# plt.savefig('Plot1.png')
 plt.show()
 
 # Make a function that iterates over every predicted values in every posterior draw sample and returns
@@ -178,5 +174,5 @@ ax.plot(predX, yhat['fitted'], 'k')
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.grid()
-plt.savefig('Plot2.png')
+# plt.savefig('Plot2.png')
 plt.show()
